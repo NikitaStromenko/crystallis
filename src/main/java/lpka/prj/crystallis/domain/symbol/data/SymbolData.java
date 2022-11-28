@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 public class SymbolData {
     private final Map<SymbolType, List<SymbolModel>> data;
 
-
     public SymbolData() {
         this.data = new HashMap<>();
         setup();
@@ -19,10 +18,15 @@ public class SymbolData {
         return data.keySet();
     }
 
-    public List<SymbolModel> getSymbolModelsByTypes(Set<SymbolType> types) {
-        return types.stream()
-                .flatMap(type -> data.get(type).stream())
-                .collect(Collectors.toList());
+    public Map<SymbolType, List<SymbolModel>> getSymbolModelsByTypes(Set<SymbolType> types) {
+        Map<SymbolType, List<SymbolModel>> result = new HashMap<>();
+
+        types.forEach(type -> {
+            if (!result.containsKey(type)) {
+                result.put(type, data.get(type));
+            }
+        });
+        return result;
     }
 
     private void setup() {
