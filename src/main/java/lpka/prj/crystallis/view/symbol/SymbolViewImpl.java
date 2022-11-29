@@ -8,9 +8,10 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import lpka.prj.crystallis.domain.symbol.session.SymbolSession;
+import lpka.prj.crystallis.domain.symbol.session.models.ComponentKeys;
 import lpka.prj.crystallis.view.symbol.components.SymbolView;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,24 +61,41 @@ public class SymbolViewImpl extends SymbolView {
     }
 
     private void initMenuData() {
+        menuBackButton.setVisible(false);
+        menuNextButton.setVisible(false);
         menuBackButton.setText("Back");
         menuNextButton.setText("Next");
-        menuLabel.setText("Choose types");
+        menuLabel.setText(session.getStageDataByKey(ComponentKeys.MENU_LABEL, ""));
 
-        menuSelectBox.setItems(session.getAllSymbolTypes().stream()
-                .map(Enum::name)
+        menuSelectBox.setItems(session.getStageDataByKey(ComponentKeys.MENU_SELECT_BOX, new ArrayList<>())
+                .stream()
+                .map(obj -> (String) obj)
                 .collect(Collectors.toList()));
     }
 
     private void initListeners() {
+        menuSelectBox.addSelectionListener(event -> {
+            menuNextButton.setVisible(!event.getAllSelectedItems().isEmpty());
+        });
+
         menuNextButton.addClickListener(event -> {
             Set<String> types = menuSelectBox.getSelectedItems();
-            List<String> newItems = session.nextStage(types)
-                    .stream()
-                    .map(obj -> (String) obj)
-                    .collect(Collectors.toList());
-            menuSelectBox.setItems(newItems);
-            menuLabel.setText(session.getTextForMenuLabel());
+            session.nextStage(types);
+            refreshMenuData();
         });
+
+        menuBackButton.addClickListener(event -> {
+            session.backStage();
+            refreshMenuData();
+        });
+    }
+
+    private void refreshMenuData() {
+        menuSelectBox.setItems(session.getStageDataByKey(ComponentKeys.MENU_SELECT_BOX, new ArrayList<>())
+                .stream()
+                .map(obj -> (String) obj)
+                .collect(Collectors.toList()));
+        menuLabel.setText(session.getStageDataByKey(ComponentKeys.MENU_LABEL, ""));
+        menuBackButton.setVisible(session.getStageDataByKey(ComponentKeys.MENU_BACK_BUTTON, false));
     }
 }
