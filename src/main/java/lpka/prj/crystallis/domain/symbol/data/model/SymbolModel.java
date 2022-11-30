@@ -1,11 +1,11 @@
-package lpka.prj.crystallis.domain.symbol.models;
+package lpka.prj.crystallis.domain.symbol.data.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lpka.prj.crystallis.domain.symbol.classification.SymbolType;
+import lombok.Getter;
+import lpka.prj.crystallis.domain.symbol.data.type.SymbolType;
 
 @AllArgsConstructor(staticName = "of")
-@Data
+@Getter
 public class SymbolModel {
     private String symbol;
     private String romaji;

@@ -1,103 +1,75 @@
 package lpka.prj.crystallis.domain.symbol.session;
 
-import lpka.prj.crystallis.domain.symbol.classification.SymbolType;
-import lpka.prj.crystallis.domain.symbol.models.SymbolModel;
-import lpka.prj.crystallis.domain.symbol.service.SymbolService;
-import lpka.prj.crystallis.domain.symbol.session.models.ComponentKeys;
-import lpka.prj.crystallis.domain.symbol.session.models.SessionDataByStage;
+import lpka.prj.crystallis.domain.commons.session.Session;
+import lpka.prj.crystallis.domain.commons.session.input.SessionApplyInput;
+import lpka.prj.crystallis.domain.symbol.components.SymbolViewComponents;
+import lpka.prj.crystallis.domain.symbol.data.SymbolData;
+import lpka.prj.crystallis.domain.symbol.data.type.SymbolType;
+import lpka.prj.crystallis.domain.symbol.session.process.SymbolMenuProcess;
+import lpka.prj.crystallis.domain.symbol.stage.SymbolViewStages;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class SymbolSession {
-    private final SymbolService symbolService;
-    private Stages stage = Stages.SELECT_TYPES;
-    private final SessionDataByStage dataByStage;
+public class SymbolSession implements Session<SymbolViewComponents> {
+    private final SymbolData data;
+    private SymbolViewStages stage;
+    private final SymbolMenuProcess menuProcess;
 
-    public SymbolSession(SymbolService symbolService) {
-        this.symbolService = symbolService;
-        dataByStage = SessionDataByStage.of(
-                Map.of(
-                        ComponentKeys.MENU_LABEL, Collections.singletonList("Choose types"),
-                        ComponentKeys.MENU_SELECT_BOX, getAllSymbolTypes(),
-                        ComponentKeys.MENU_BACK_BUTTON, Collections.singletonList(false)
-                ));
+    public SymbolSession() {
+        this.data = new SymbolData();
+        this.stage = SymbolViewStages.SELECT_TYPES;
+        this.menuProcess = new SymbolMenuProcess(data);
     }
 
-    public <T> T getStageDataByKey(ComponentKeys key, T dataContainer) {
-        return dataByStage.getData(key, dataContainer);
-    }
-
-    public void nextStage(Collection<?> data) {
+    @Override
+    public void nextStage(List<SessionApplyInput<SymbolViewComponents>> inputs) {
         switch (stage) {
             case SELECT_TYPES:
-                if (data != null && !data.isEmpty()) {
-                    stage = Stages.SELECT_STRINGS;
-                    List<String> symbolStrings = findSymbolStringsByTypes(data.stream()
-                            .map(type -> SymbolType.valueOf((String) type))
-                            .collect(Collectors.toSet()));
-
-                    setDataByStage(symbolStrings);
-                }
+                stage = SymbolViewStages.SELECT_STRINGS;
+                inputs.forEach(this::apply);
+                break;
         }
     }
 
+    @Override
     public void backStage() {
         switch (stage) {
             case SELECT_STRINGS:
-                stage = Stages.SELECT_TYPES;
-
-                setDataByStage(Collections.emptyList());
-        }
-    }
-
-    private void setDataByStage(List<String> data) {
-        switch (stage) {
-            case SELECT_TYPES:
-                dataByStage.clearAndPutNew(
-                        Map.of(
-                                ComponentKeys.MENU_SELECT_BOX, getAllSymbolTypes(),
-                                ComponentKeys.MENU_LABEL, Collections.singletonList("Choose types"),
-                                ComponentKeys.MENU_BACK_BUTTON, Collections.singletonList(false)
-                        )
-                );
+                stage = SymbolViewStages.SELECT_TYPES;
                 break;
-            case SELECT_STRINGS:
-                dataByStage.clearAndPutNew(
-                        Map.of(
-                                ComponentKeys.MENU_SELECT_BOX, data,
-                                ComponentKeys.MENU_LABEL, Collections.singletonList("Choose symbols"),
-                                ComponentKeys.MENU_BACK_BUTTON, Collections.singletonList(true)
-                        ));
         }
     }
 
-    private Set<String> getAllSymbolTypes() {
-        return symbolService.getAllSymbolTypes()
-                .stream()
-                .map(Enum::name)
-                .collect(Collectors.toSet());
-    }
-
-    private List<String> findSymbolStringsByTypes(Set<SymbolType> types) {
-        Map<SymbolType, List<SymbolModel>> modelsByTypes = symbolService.findSymbolModelsByTypes(types);
-
-        return modelsByTypes.keySet()
-                .stream()
-                .flatMap(key -> modelsByTypes.get(key)
-                        .stream()
-                        .map(SymbolModel::getStr)
-                        .distinct()
-                        .map(str -> joinSymbolsByString(modelsByTypes.get(key), str)))
-                .collect(Collectors.toList());
-    }
-
-    private String joinSymbolsByString(List<SymbolModel> models, Integer str) {
-        return models.stream()
-                .filter(symbolModel -> symbolModel.getStr().equals(str))
-                .map(SymbolModel::getSymbol)
-                .collect(Collectors.joining(","));
+    @Override
+    public void apply(SessionApplyInput<SymbolViewComponents> input) {
+        Consumer<Object> cons = input.getCons();
+        switch (input.getEnumeration()) {
+            case MENU_LABEL:
+                if (stage.equals(SymbolViewStages.SELECT_TYPES)) {
+                    cons.accept("Choose types");
+                } else if (stage.equals(SymbolViewStages.SELECT_STRINGS)) {
+                    cons.accept("Choose symbols");
+                } else {
+                    cons.accept("");
+                }
+                break;
+            case MENU_SELECT_BOX:
+                if (stage.equals(SymbolViewStages.SELECT_TYPES)) {
+                    cons.accept(menuProcess.selectTypes());
+                } else if (stage.equals(SymbolViewStages.SELECT_STRINGS)) {
+                    Set<String> types = (Set<String>) input.getData();
+                    cons.accept(menuProcess.selectSymbolJoinedByStr(types.stream().map(SymbolType::valueOf).collect(Collectors.toSet())));
+                } else {
+                    cons.accept(null);
+                }
+                break;
+            case MENU_BACK_BUTTON:
+                cons.accept(!stage.equals(SymbolViewStages.SELECT_TYPES));
+        }
     }
 }

@@ -1,10 +1,9 @@
 package lpka.prj.crystallis.domain.symbol.data;
 
-import lpka.prj.crystallis.domain.symbol.classification.SymbolType;
-import lpka.prj.crystallis.domain.symbol.models.SymbolModel;
+import lpka.prj.crystallis.domain.symbol.data.model.SymbolModel;
+import lpka.prj.crystallis.domain.symbol.data.type.SymbolType;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SymbolData {
     private final Map<SymbolType, List<SymbolModel>> data;
