@@ -9,7 +9,6 @@ import lpka.prj.crystallis.domain.commons.session.input.SessionApplyInput;
 import lpka.prj.crystallis.domain.symbol.components.SymbolViewComponents;
 import lpka.prj.crystallis.domain.symbol.session.SymbolSession;
 import lpka.prj.crystallis.view.symbol.pages.MenuView;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -27,7 +26,6 @@ public class MenuViewPageImpl extends MenuView {
                 SymbolViewComponents.MENU_LABEL,
                 (Object data) -> {
                     String strData = ((String) data);
-                    menuLabel.setVisible(StringUtils.isNotBlank(strData));
                     menuLabel.setText(strData);
                 },
                 null);
@@ -35,7 +33,6 @@ public class MenuViewPageImpl extends MenuView {
                 SymbolViewComponents.MENU_SELECT_BOX,
                 (Object data) -> {
                     List<String> listData = (List<String>) data;
-                    menuSelectBox.setVisible(listData != null && !listData.isEmpty());
                     menuSelectBox.setItems(listData);
                 },
                 null
@@ -48,6 +45,12 @@ public class MenuViewPageImpl extends MenuView {
                 },
                 null
         );
+
+        session.setCloseMenuCallback((Boolean bol) -> {
+            menuLabel.setVisible(!bol);
+            menuSelectBox.setVisible(!bol);
+            menuSelectBox.clear();
+        });
         init();
     }
 
