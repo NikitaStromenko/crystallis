@@ -4,6 +4,7 @@ import lpka.prj.crystallis.domain.symbol.data.model.SymbolModel;
 import lpka.prj.crystallis.domain.symbol.data.type.SymbolType;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SymbolData {
     private final Map<SymbolType, List<SymbolModel>> data;
@@ -26,6 +27,14 @@ public class SymbolData {
             }
         });
         return result;
+    }
+
+    public List<SymbolModel> getSymbolModelsBySymbols(List<String> symbols) {
+        return data.values().stream()
+                .flatMap(Collection::stream)
+                .filter(symbolModel -> symbols.stream()
+                        .anyMatch(symbol -> symbol.equals(symbolModel.getSymbol())))
+                .collect(Collectors.toList());
     }
 
     private void setup() {

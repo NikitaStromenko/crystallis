@@ -104,8 +104,8 @@ public class MenuViewPageImpl extends MenuView {
         });
 
         menuNextButton.addClickListener(event -> {
-            Set<String> types = menuSelectBox.getSelectedItems();
-            selectBoxApplyInput.setData(types);
+            Set<String> data = menuSelectBox.getSelectedItems();
+            selectBoxApplyInput.setData(data);
             session.nextStage(List.of(selectBoxApplyInput, backButtonApplyInput, labelApplyInput));
         });
 

@@ -6,19 +6,19 @@ import lpka.prj.crystallis.domain.symbol.components.SymbolViewComponents;
 import lpka.prj.crystallis.domain.symbol.data.SymbolData;
 import lpka.prj.crystallis.domain.symbol.data.type.SymbolType;
 import lpka.prj.crystallis.domain.symbol.session.process.SymbolMenuProcess;
+import lpka.prj.crystallis.domain.symbol.session.process.SymbolTrainingProcess;
 import lpka.prj.crystallis.domain.symbol.stage.SymbolViewStages;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-@Service
 public class SymbolSession implements Session<SymbolViewComponents> {
     private final SymbolData data;
     private SymbolViewStages stage;
     private final SymbolMenuProcess menuProcess;
+    private final SymbolTrainingProcess trainingProcess;
     private Consumer<Boolean> startTrainingCallback;
     private Consumer<Boolean> closeMenuCallback;
 
@@ -26,6 +26,7 @@ public class SymbolSession implements Session<SymbolViewComponents> {
         this.data = new SymbolData();
         this.stage = SymbolViewStages.SELECT_TYPES;
         this.menuProcess = new SymbolMenuProcess(data);
+        this.trainingProcess = new SymbolTrainingProcess(data);
     }
 
     public void setStartTrainingCallback(Consumer<Boolean> startTrainingCallback) {
@@ -45,6 +46,7 @@ public class SymbolSession implements Session<SymbolViewComponents> {
                 break;
             case SELECT_STRINGS:
                 stage = SymbolViewStages.START_TRAINING;
+                inputs.forEach(this::apply);
                 startTraining(true);
                 break;
         }
@@ -89,17 +91,20 @@ public class SymbolSession implements Session<SymbolViewComponents> {
                     }
                     cons.accept(result);
                 } else {
-                    cons.accept(null);
+                    Set<String> symbolsStrings = (Set<String>) input.getData();
+                    trainingProcess.setSelectedSymbolsStrings(symbolsStrings);
                 }
                 break;
             case MENU_BACK_BUTTON:
                 cons.accept(!stage.equals(SymbolViewStages.SELECT_TYPES));
                 break;
             case TRAINING_TEXT_FIELD:
-                if (input.getData() == null) {
-                    cons.accept("あ");
+                if (input.getData() != null) {
+                    String answer = (String) input.getData();
+                    if (trainingProcess.checkAnswer(answer))
+                        cons.accept(trainingProcess.findRandomSymbol());
                 } else {
-                    cons.accept("い");
+                    cons.accept(trainingProcess.findRandomSymbol());
                 }
                 break;
         }

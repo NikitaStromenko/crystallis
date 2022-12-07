@@ -1,6 +1,7 @@
 package lpka.prj.crystallis.view.symbol;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import lpka.prj.crystallis.domain.symbol.session.SymbolSession;
 import lpka.prj.crystallis.view.symbol.pages.impl.MenuViewPageImpl;
@@ -12,8 +13,8 @@ public class SymbolViewPage extends VerticalLayout {
     private final MenuViewPageImpl menuPage;
     private final TrainingViewPageImpl trainingPage;
 
-    public SymbolViewPage(SymbolSession session) {
-        this.session = session;
+    public SymbolViewPage() {
+        this.session = new SymbolSession();
         this.menuPage = new MenuViewPageImpl(session);
         this.trainingPage = new TrainingViewPageImpl(session);
 
@@ -25,6 +26,7 @@ public class SymbolViewPage extends VerticalLayout {
                 trainingPage,
                 menuPage
         );
+
         initStyles();
     }
 
