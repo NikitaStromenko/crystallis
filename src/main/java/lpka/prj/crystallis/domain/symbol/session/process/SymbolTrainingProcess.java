@@ -45,7 +45,6 @@ public class SymbolTrainingProcess {
     }
 
     public String findRandomSymbol() {
-        int counter = 0;
         if (callLog.size() <= symbolModelMap.size() / 2) {
             while (true) {
                 String randomSymbol = selectedSymbols.get(generateRandomNumber(selectedSymbols.size(), 0));
@@ -56,76 +55,30 @@ public class SymbolTrainingProcess {
             }
         } else if (!allSymbolsUsed) {
             List<String> notUsedSymbols = findNotUsedSymbols();
-            while (true) {
+            for (int counter = 0; counter < 100; counter++) {
                 String randomSymbol = notUsedSymbols.get(generateRandomNumber(notUsedSymbols.size(), 0));
                 if (!currentSymbol.equals(randomSymbol)) {
                     currentSymbol = randomSymbol;
                     break;
                 }
-                if (counter == 100) {
-                    currentSymbol = selectedSymbols.get(generateRandomNumber(selectedSymbols.size(), 0));
-                    break;
-                }
-                counter++;
             }
         } else {
-            if (generateRandomNumber(10, 0) <= 7) {
-                List<String> rareSymbols = findRareSymbols();
-                while (true) {
-                    String randomSymbol = rareSymbols.get(generateRandomNumber(rareSymbols.size(), 0));
-                    if (!currentSymbol.equals(randomSymbol)) {
-                        currentSymbol = randomSymbol;
-                        break;
-                    }
-                    if (counter == 100) {
-                        currentSymbol = selectedSymbols.get(generateRandomNumber(selectedSymbols.size(), 0));
-                        break;
-                    }
-                    counter++;
-                }
-            } else {
-                List<String> symbolsWithMoreErrors = findSymbolsWithMoreErrors(new ArrayList<>(symbolModelMap.values()));
-                while (true) {
-                    String randomSymbol = symbolsWithMoreErrors.get(generateRandomNumber(symbolsWithMoreErrors.size(), 0));
-                    if (!currentSymbol.equals(randomSymbol)) {
-                        currentSymbol = randomSymbol;
-                        break;
-                    }
-                    if (counter == 100) {
-                        currentSymbol = selectedSymbols.get(generateRandomNumber(selectedSymbols.size(), 0));
-                        break;
-                    }
-                    counter++;
+            List<String> rareSymbols = findRareSymbols();
+            for (int counter = 0; counter < 100; counter++) {
+                String randomSymbol = rareSymbols.get(generateRandomNumber(rareSymbols.size(), 0));
+                if (!currentSymbol.equals(randomSymbol)) {
+                    currentSymbol = randomSymbol;
+                    break;
                 }
             }
         }
 
+        if (!callLog.isEmpty() && selectedSymbols.get(callLog.getLast()).equals(currentSymbol)) {
+            currentSymbol = selectedSymbols.get(generateRandomNumber(selectedSymbols.size(), 0));
+        }
         callLog.add(selectedSymbols.indexOf(currentSymbol));
         symbolModelMap.get(currentSymbol).incrementCalled();
         return currentSymbol;
-    }
-
-    private List<String> findSymbolsWithMoreErrors(List<TrainingProcessSymbolModel> trainingProcessSymbolModels) {
-        double min = trainingProcessSymbolModels.stream()
-                .filter(model -> model.getWrongAnswers() > 0)
-                .mapToDouble(model -> {
-                    if (model.getRightAnswers() == 0)
-                        return 0.0;
-                    return (double) model.getRightAnswers() / model.getWrongAnswers();
-                })
-                .min()
-                .orElse(0.0);
-
-        if (min == 0.0) {
-            return findRareSymbols();
-        }
-
-        return trainingProcessSymbolModels
-                .stream()
-                .filter(model -> model.getWrongAnswers() > 0)
-                .filter(model -> (double) model.getRightAnswers() / model.getWrongAnswers() <= min + 0.20)
-                .map(TrainingProcessSymbolModel::getSymbol)
-                .collect(Collectors.toList());
     }
 
     private List<String> findRareSymbols() {
@@ -135,7 +88,7 @@ public class SymbolTrainingProcess {
                 .min()
                 .orElse(0);
 
-       return symbolModelMap.values()
+        return symbolModelMap.values()
                 .stream()
                 .filter(model -> model.getCalled() <= min + 1)
                 .map(TrainingProcessSymbolModel::getSymbol)
@@ -156,6 +109,7 @@ public class SymbolTrainingProcess {
 
         return result;
     }
+
     private int generateRandomNumber(int max, int min) {
         return (int) ((Math.random() * (max - min)) + min);
     }

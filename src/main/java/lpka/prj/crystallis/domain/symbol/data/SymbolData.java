@@ -39,6 +39,7 @@ public class SymbolData {
 
     private void setup() {
         setupHiragana();
+        setupKatakana();
     }
 
     private void setupHiragana() {
@@ -99,7 +100,31 @@ public class SymbolData {
         parseHiragana(twentyFive, 25);
         parseHiragana(twentySix, 26);
     }
+    
+    private void setupKatakana() {
+        Map<String, String> one = Map.of("ア","a","イ","i","ウ","u","エ","e","オ","o");
+        Map<String, String> two = Map.of("カ","ka","キ","ki","ク","ku","ケ","ke","コ","ko");
+        Map<String, String> three = Map.of("サ","sa","シ","shi","ス","su","セ","se","ソ","so");
+        Map<String, String> four = Map.of("タ","ta","チ","chi","ツ","tsu","テ","te","ト","to");
+        Map<String, String> five = Map.of("ナ","na","ニ","ni","ヌ","nu","ネ","ne","ノ","no");
+        Map<String, String> six = Map.of("ハ","ha","ヒ","hi","フ","fu","ヘ","he","ホ","ho");
+        Map<String, String> seven = Map.of("マ","ma","ミ","mi","ム","mu","メ","me","モ","mo");
+        Map<String, String> eight = Map.of("ヤ","ya","ユ","yu","ヨ","yo");
+        Map<String, String> nine = Map.of("ラ","ra","リ","ri","ル","ru","レ","re","ロ","ro");
+        Map<String, String> ten = Map.of("ワ","wa","ヲ","wo","ン","n");
 
+        parseKatakana(one, 1);
+        parseKatakana(two, 2);
+        parseKatakana(three, 3);
+        parseKatakana(four, 4);
+        parseKatakana(five, 5);
+        parseKatakana(six, 6);
+        parseKatakana(seven, 7);
+        parseKatakana(eight, 8);
+        parseKatakana(nine, 9);
+        parseKatakana(ten, 10);
+    }
+    
     private void parseHiragana(Map<String, String> symbols, Integer str) {
         symbols.keySet().forEach(key -> parse(SymbolType.HIRAGANA, key, symbols.get(key), str));
     }
